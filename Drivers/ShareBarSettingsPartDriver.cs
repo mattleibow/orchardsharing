@@ -1,4 +1,4 @@
-﻿using JetBrains.Annotations;
+﻿
 using Orchard;
 using Orchard.ContentManagement;
 using Orchard.ContentManagement.Drivers;
@@ -9,7 +9,7 @@ using Szmyd.Orchard.Modules.Sharing.Models;
 
 namespace Szmyd.Orchard.Modules.Sharing.Drivers
 {
-    [UsedImplicitly]
+    
     public class ShareBarSettingsPartDriver : ContentPartDriver<ShareBarSettingsPart>
     {
 

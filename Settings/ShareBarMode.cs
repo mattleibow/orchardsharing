@@ -12,6 +12,7 @@ namespace Szmyd.Orchard.Modules.Sharing.Settings
         ToolboxFacebookLike,
         MediumIcons,
         RetweetLikeShare,
-        Css3StyleButtons
+        Css3StyleButtons,
+        GoogleLikeShare
     }
 }
