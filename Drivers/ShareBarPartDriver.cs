@@ -1,15 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Web;
 
 using Orchard;
+using Orchard.Autoroute.Models;
 using Orchard.ContentManagement;
 using Orchard.ContentManagement.Drivers;
-using Orchard.Core.Routable.Models;
-using Orchard.Core.Routable.Services;
+using Orchard.Core.Title.Models;
 using Orchard.Mvc;
-using Orchard.Services;
 using Orchard.Utility.Extensions;
 using Szmyd.Orchard.Modules.Sharing.Models;
 using Szmyd.Orchard.Modules.Sharing.Settings;
@@ -17,18 +14,16 @@ using Szmyd.Orchard.Modules.Sharing.ViewModels;
 
 namespace Szmyd.Orchard.Modules.Sharing.Drivers
 {
-    
+
     public class ShareBarPartDriver : ContentPartDriver<ShareBarPart>
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IOrchardServices _services;
-        private readonly IHomePageProvider _routableHomePageProvider;
 
-        public ShareBarPartDriver(IHttpContextAccessor httpContextAccessor, IOrchardServices services, IEnumerable<IHomePageProvider> homePageProviders)
+        public ShareBarPartDriver(IHttpContextAccessor httpContextAccessor, IOrchardServices services)
         {
             _httpContextAccessor = httpContextAccessor;
             _services = services;
-            _routableHomePageProvider = homePageProviders.SingleOrDefault(p => p.GetProviderName() == RoutableHomePageProvider.Name);
         }
 
         protected override DriverResult Display(ShareBarPart part, string displayType, dynamic shapeHelper)
@@ -41,29 +36,22 @@ namespace Szmyd.Orchard.Modules.Sharing.Drivers
                 return null;
             }
 
-            var routePart = part.As<RoutePart>();
-            var isHomePage = _routableHomePageProvider != null && _services.WorkContext.CurrentSite.HomePage == _routableHomePageProvider.GetSettingValue(routePart.Id);
-
-            string containerPath = routePart.GetContainerPath();
+            var routePart = part.As<AutoroutePart>();
 
             // Prevent share bar from showing when current item is not Routable
-            if (routePart.Title != null && routePart.Slug != null)
+            if (routePart != null)
             {
                 var typeSettings = part.Settings.GetModel<ShareBarTypePartSettings>();
                 HttpRequestBase request = _httpContextAccessor.Current().Request;
-                var containerUrl = new UriBuilder(request.ToRootUrlString()) { Path = (request.ApplicationPath ?? "").TrimEnd('/') + "/" + (containerPath ?? "") };
                 var model = new ShareBarViewModel
                 {
-                    Link = isHomePage ? request.ToRootUrlString() : String.Format("{0}/{1}", containerUrl.Uri.ToString().TrimEnd('/'), routePart.Slug),
-                    Title = routePart.Title,
+                    Link = String.Format("{0}/{1}", request.ToApplicationRootUrlString(), routePart.Path),
+                    Title = routePart.As<TitlePart>().Title,
                     Account = shareSettings.AddThisAccount,
                     Mode = typeSettings.Mode
                 };
 
-                return ContentShape("Parts_Share_ShareBar",
-                            () => shapeHelper.Parts_Share_ShareBar(ViewModel: model));
-
-
+                return ContentShape("Parts_Share_ShareBar", () => shapeHelper.Parts_Share_ShareBar(ViewModel: model));
 
             }
 
