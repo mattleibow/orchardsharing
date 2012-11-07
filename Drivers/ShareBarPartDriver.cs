@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Web;
 using JetBrains.Annotations;
 using Orchard;
 using Orchard.ContentManagement;
+using Orchard.ContentManagement.Aspects;
 using Orchard.ContentManagement.Drivers;
-using Orchard.Core.Routable.Models;
-using Orchard.Core.Routable.Services;
 using Orchard.Mvc;
 using Orchard.Utility.Extensions;
 using Szmyd.Orchard.Modules.Sharing.Models;
@@ -28,39 +26,45 @@ namespace Szmyd.Orchard.Modules.Sharing.Drivers
 
         protected override DriverResult Display(ShareBarPart part, string displayType, dynamic shapeHelper)
         {
-            var shareSettings = _services.WorkContext.CurrentSite.As<ShareBarSettingsPart>();
+            return ContentShape("Parts_Share_ShareBar", () => {
+                                                                var shareSettings = _services.WorkContext.CurrentSite.As<ShareBarSettingsPart>();
+                                                                var httpContext = _httpContextAccessor.Current();
 
-            // Prevent share bar from showing if account is not set
-            if (shareSettings == null || string.IsNullOrWhiteSpace(shareSettings.AddThisAccount))
-            {
-                return null;
-            }
+                                                                // Prevent share bar from showing if account is not set
+                                                                if (shareSettings == null || string.IsNullOrWhiteSpace(shareSettings.AddThisAccount))
+                                                                {
+                                                                    return null;
+                                                                }
 
-            var routePart = part.As<RoutePart>();
-            string containerPath = routePart.GetContainerPath();
+                                                                // Prevent share bar from showing when current item is not Routable
+                                                                if (!part.Is<IAliasAspect>()) return null;
 
-            // Prevent share bar from showing when current item is not Routable
-            if (routePart.Title != null && routePart.Slug != null)
-            {
-                var typeSettings = part.Settings.GetModel<ShareBarTypePartSettings>();
-                HttpRequestBase request = _httpContextAccessor.Current().Request;
-                var containerUrl = new UriBuilder(request.ToRootUrlString()) { Path = (request.ApplicationPath ?? "").TrimEnd('/') + "/" + (containerPath ?? "") };
-                var model = new ShareBarViewModel
-                {
-                    Link = String.Format("{0}/{1}", containerUrl.Uri.ToString().TrimEnd('/'), routePart.Slug),
-                    Title = routePart.Title,
-                    Account = shareSettings.AddThisAccount,
-                    Mode = typeSettings.Mode
-                };
+                                                                var path = part.As<IAliasAspect>().Path;
+                                                                var typeSettings = part.Settings.GetModel<ShareBarTypePartSettings>();
+                                                                var baseUrl = httpContext.Request.ToApplicationRootUrlString();
 
-                return ContentShape("Parts_Share_ShareBar",
-                            () => shapeHelper.Parts_Share_ShareBar(ViewModel: model));
+                                                                // remove any application path from the base url
+                                                                var applicationPath = httpContext.Request.ApplicationPath ?? String.Empty;
 
+                                                                if (path.StartsWith(applicationPath, StringComparison.OrdinalIgnoreCase))
+                                                                {
+                                                                    path = path.Substring(applicationPath.Length);
+                                                                }
 
+                                                                baseUrl = baseUrl.TrimEnd('/');
+                                                                path = path.TrimStart('/');
 
-            }
+                                                                path = baseUrl + "/" + path;
+                                                                var model = new ShareBarViewModel
+                                                                {
+                                                                    Link = path,
+                                                                    Title = _services.ContentManager.GetItemMetadata(part).DisplayText,
+                                                                    Account = shareSettings.AddThisAccount,
+                                                                    Mode = typeSettings.Mode
+                                                                };
+                                                                return shapeHelper.Parts_Share_ShareBar(ViewModel: model);
+                                                            });
 
-            return null;
         }
     }
 }
