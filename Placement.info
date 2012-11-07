@@ -1,7 +1,7 @@
 ﻿<Placement>
-    <Place Parts_Share_ShareBar="Content:1"/>
+    <Place Parts_Share_ShareBar="-"/>
     <Place Parts_Share_Settings="Content:20"/>
-    <Match DisplayType="SummaryAdmin">
-        <Place Parts_Share_ShareBar="-"/>
+    <Match DisplayType="Detail">
+        <Place Parts_Share_ShareBar="Content:before"/>
     </Match>
 </Placement>
