@@ -1,37 +1,98 @@
 ﻿@using Szmyd.Orchard.Modules.Sharing.Settings
-@{ 
+@{
     var mode = (ShareBarMode)Model.ViewModel.Mode;
-}
-<div class="sharebar-wrapper">
-@switch (mode)
-{
-    case ShareBarMode.VerticalShareCounter:
-    @Display(New.Modes_ShareBar_VerticalShareCounter(ViewModel: Model.ViewModel));
-                                                                                 break;
-    case ShareBarMode.TweetLikeShare:
-    @Display(New.Modes_ShareBar_TweetLikeShare(ViewModel: Model.ViewModel));
-                                                                           break;
-    case ShareBarMode.ToolboxFacebookLike:
-    @Display(New.Modes_ShareBar_ToolboxFacebookLike(ViewModel: Model.ViewModel));
-                                                                                break;
-    case ShareBarMode.RetweetLikeShare:
-    @Display(New.Modes_ShareBar_RetweetLikeShare(ViewModel: Model.ViewModel));
-                                                                             break;
-    case ShareBarMode.MediumIcons:
-    @Display(New.Modes_ShareBar_MediumIcons(ViewModel: Model.ViewModel));
-                                                                        break;
-    case ShareBarMode.HorizontalShareCounter:
-    @Display(New.Modes_ShareBar_HorizontalShareCounter(ViewModel: Model.ViewModel));
-                                                                                   break;
-    case ShareBarMode.Css3StyleButtons:
-    @Display(New.Modes_ShareBar_Css3StyleButtons(ViewModel: Model.ViewModel));
-                                                                             break;
-    case ShareBarMode.GoogleLikeShare:
-    @Display(New.Modes_ShareBar_GoogleLikeShare(ViewModel: Model.ViewModel));
-                                                                            break;
-    default:
-    @Display(New.Modes_ShareBar_TweetLikeShare(ViewModel: Model.ViewModel));
-                                                                           break;
+    var link = Model.ViewModel.Link as string;
+    var title = Model.ViewModel.Title as string;
+    
+    Script.Require("jQuery").AtHead();
+    using (Script.Foot())
+    {
+        <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=@(Model.ViewModel.Account as string)&async=1"></script>
+        <script type="text/javascript">
+            var addthis_config = {
+                "data_track_clickback": true,
+                "data_track_addressbar": true
+            };
+            function initAddThis() {
+                addthis.init();
+            }
+            $(document).ready(initAddThis);
+        </script>
+    }
 }
 
+<div class="sharebar-wrapper">
+    <div class="sharebar">
+        <!-- AddThis Button BEGIN -->
+        @switch (mode)
+        {
+            case ShareBarMode.VerticalShareCounter:
+            <div class="addthis_toolbox" addthis:url="@link" addthis:title="@title">
+                <a class="addthis_counter"></a>
+            </div>
+                break;
+
+            case ShareBarMode.ToolboxFacebookLike:
+            <div class="addthis_toolbox addthis_default_style " addthis:url="@link" addthis:title="@title">
+                <a href="http://addthis.com/bookmark.php?v=250" class="addthis_button_compact">Share</a>
+                <span class="addthis_separator"></span>
+                <a class="addthis_button_facebook"></a>
+                <a class="addthis_button_twitter"></a>
+                <a class="addthis_button_googlebuzz"></a>
+                <a class="addthis_button_email"></a>
+                <span class="addthis_separator"></span>
+                <a class="addthis_button_facebook_like">
+                </a>
+            </div>
+                break;
+                
+            case ShareBarMode.RetweetLikeShare:
+            <div class="addthis_toolbox addthis_pill_combo" addthis:url="@link" addthis:title="@title">
+                <a class="addthis_button_tweetmeme" tm:style="compact"></a>
+                <a class="addthis_button_facebook_like"></a>
+                <a class="addthis_button_compact">Share</a>
+            </div>
+                break;
+                
+            case ShareBarMode.MediumIcons:
+            <div class="addthis_toolbox addthis_32x32_style addthis_default_style" addthis:url="@link" addthis:title="@title">
+                <a class="addthis_button_facebook"></a>
+                <a class="addthis_button_twitter"></a>
+                <a class="addthis_button_email"></a>
+                <a class="addthis_button_google"></a>
+                <a class="addthis_button_compact"></a>
+            </div>
+                break;
+                
+            case ShareBarMode.HorizontalShareCounter:
+            <div class="addthis_toolbox" addthis:url="@link" addthis:title="@title">
+                <a class="addthis_counter addthis_pill_style"></a>
+            </div>
+                break;
+                
+            case ShareBarMode.Css3StyleButtons:
+            <div class="addthis_toolbox addthis_share_btn" addthis:url="@link" addthis:title="@title">
+                <a href="http://addthis.com/bookmark.php" class="addthis_button_compact"><span>Share</span></a>
+            </div>
+                break;
+                
+            case ShareBarMode.GoogleLikeShare:
+            <div class="addthis_toolbox addthis_default_style" addthis:url="@link" addthis:title="@title">
+                <a class="addthis_button_facebook_like" fb:like:layout="button_count"></a>
+                <a class="addthis_button_google_plusone" g:plusone:size="medium"></a>
+                <a class="addthis_counter addthis_pill_style"></a>
+            </div>
+                break;
+                
+            default:
+            case ShareBarMode.TweetLikeShare:
+            <div class="addthis_toolbox addthis_default_style" addthis:url="@link" addthis:title="@title">
+                <a class="addthis_button_facebook_like" fb:like:layout="button_count"></a>
+                <a class="addthis_button_tweet"></a>
+                <a class="addthis_counter addthis_pill_style"></a>
+            </div>
+                break;
+        }
+        <!-- AddThis Button END -->
+    </div>
 </div>
